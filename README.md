@@ -6,7 +6,7 @@ Repositório do Trabalho Prático 1 da disciplina **Compiladores I (FACOM)**: im
 
 ## Sobre o trabalho
 
-O objetivo é completar a especificação léxica de Micro C a partir de um esqueleto fornecido (`microc.flex`), reconhecendo corretamente todos os tokens da linguagem — palavras reservadas, identificadores, constantes, operadores e delimitadores — além de identificar e reportar erros léxicos.
+O objetivo é completar a especificação léxica de Micro C a partir de um esqueleto fornecido (`microc.flex`), reconhecendo corretamente todos os tokens da linguagem palavras reservadas, identificadores, constantes, operadores e delimitadores além de identificar e reportar erros léxicos.
 
 Para cada token reconhecido na entrada, o scanner deve imprimir seu tipo, o lexema correspondente e a linha em que foi encontrado:
 
