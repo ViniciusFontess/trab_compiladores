@@ -4,7 +4,7 @@
 
 Repositório do Trabalho Prático 1 da disciplina **Compiladores I (FACOM)**: implementação de um **analisador léxico (scanner)** para a linguagem **Micro C**, utilizando a ferramenta **Flex**.
 
-## 📋 Sobre o trabalho
+## Sobre o trabalho
 
 O objetivo é completar a especificação léxica de Micro C a partir de um esqueleto fornecido (`microc.flex`), reconhecendo corretamente todos os tokens da linguagem — palavras reservadas, identificadores, constantes, operadores e delimitadores — além de identificar e reportar erros léxicos.
 
@@ -26,7 +26,7 @@ ERRO LEXICO (linha N): <mensagem de erro>
 
 O enunciado completo do trabalho está disponível em [`TP1_Analise_Lexica_MicroC.pdf`](./TP1_Analise_Lexica_MicroC.pdf).
 
-## 📁 Estrutura do repositório
+## Estrutura do repositório
 
 ```
 comp1-2026/
@@ -37,7 +37,7 @@ comp1-2026/
 └── README.md                      # Este arquivo
 ```
 
-## ✅ Itens a implementar
+## Itens a implementar
 
 - [ ] Reconhecimento das palavras reservadas: `main`, `if`, `else`, `for`, `return`, `int`, `char`, `print` (atualmente tratadas como `ID`)
 - [ ] Constantes de caractere (`CHARCONST`) e de string (`STRINGCONST`), com conversão de sequências de escape (`\n`, `\t`, `\\`, `\"`, `\0`) e tratamento dos erros correspondentes
@@ -47,7 +47,7 @@ comp1-2026/
 - [ ] Especificação léxica completa (toda entrada deve corresponder a alguma regra, inclusive a regra de erro no final do arquivo)
 - [ ] Remoção de instruções de depuração (`printf` de teste etc.) antes da entrega
 
-## 🔧 Como compilar
+## Como compilar
 
 No diretório do projeto, execute:
 
@@ -60,7 +60,7 @@ O primeiro comando gera o arquivo `lex.yy.c` a partir das regras definidas em `m
 
 > Caso o professor disponibilize um `Makefile`, os mesmos passos poderão ser executados com `make lexer`.
 
-## ▶️ Como executar
+## Como executar
 
 ```bash
 ./lexer tests/test.mc
@@ -68,14 +68,16 @@ O primeiro comando gera o arquivo `lex.yy.c` a partir das regras definidas em `m
 
 O programa lê o arquivo Micro C informado, imprime os tokens reconhecidos e reporta eventuais erros léxicos.
 
-## 👤 Autor(es)
+## Autor(es)
 
 | Nome | Matrícula |
 |------|-----------|
-| _preencher_ | _preencher_ |
-| _preencher (se houver dupla)_ | _preencher_ |
+|Carlos Eduardo Sales| 
+|Guilherme Cintra|
+|Vinicius Fontes de Andrade| 
 
-## 🎓 Disciplina
+
+## Disciplina
 
 - **Curso:** Compiladores I
 - **Instituição:** FACOM
