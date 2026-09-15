@@ -1,0 +1,2 @@
+ERRO LEXICO (linha 3): Constante de caractere invalida
+ERRO LEXICO (linha 4): Constante de caractere nao terminada

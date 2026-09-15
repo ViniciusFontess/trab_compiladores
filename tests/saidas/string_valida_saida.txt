@@ -1,0 +1,4 @@
+Token: tipo = ID            lexema = 'x'  linha = 1
+Token: tipo = ASSIGN        lexema = '='  linha = 1
+Token: tipo = STRINGCONST   lexema = 'linha "entre aspas" e uma \barra'  linha = 1
+Token: tipo = SEMICOLON     lexema = ';'  linha = 1

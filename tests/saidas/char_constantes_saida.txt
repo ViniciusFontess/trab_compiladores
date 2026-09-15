@@ -1,0 +1,13 @@
+Token: tipo = ID            lexema = 'c'  linha = 1
+Token: tipo = ASSIGN        lexema = '='  linha = 1
+Token: tipo = CHARCONST     lexema = 'a'  linha = 1
+Token: tipo = SEMICOLON     lexema = ';'  linha = 1
+Token: tipo = ID            lexema = 'n'  linha = 2
+Token: tipo = ASSIGN        lexema = '='  linha = 2
+Token: tipo = CHARCONST     lexema = '	'  linha = 2
+Token: tipo = SEMICOLON     lexema = ';'  linha = 2
+Token: tipo = ID            lexema = 'e1'  linha = 3
+Token: tipo = ASSIGN        lexema = '='  linha = 3
+Token: tipo = SEMICOLON     lexema = ';'  linha = 3
+Token: tipo = ID            lexema = 'e2'  linha = 4
+Token: tipo = ASSIGN        lexema = '='  linha = 4

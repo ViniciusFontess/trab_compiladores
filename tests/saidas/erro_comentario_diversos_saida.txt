@@ -1,0 +1,9 @@
+Token: tipo = ID            lexema = 'a'  linha = 1
+Token: tipo = ASSIGN        lexema = '='  linha = 1
+Token: tipo = INTEGERCONST  lexema = '5'  linha = 1
+Token: tipo = ID            lexema = 'b'  linha = 1
+Token: tipo = SEMICOLON     lexema = ';'  linha = 1
+Token: tipo = ID            lexema = 'c'  linha = 3
+Token: tipo = ASSIGN        lexema = '='  linha = 3
+Token: tipo = INTEGERCONST  lexema = '1'  linha = 3
+Token: tipo = SEMICOLON     lexema = ';'  linha = 3

@@ -1,59 +1,28 @@
+%{
 /*
  * microc.flex
  *
- * Esqueleto do analisador lexico (scanner) para a linguagem Micro C.
- * Disciplina: Compiladores I - FACOM
- *
- * Este arquivo NAO esta completo. Partes do reconhecimento de tokens
- * foram implementadas apenas como EXEMPLO, para orienta-lo(a) sobre o
- * padrao a seguir. As demais estao marcadas com "TODO(aluno)" e devem
- * ser completadas por voce.
- *
  * Compilacao:
  *      flex microc.flex
- *      gcc lex.yy.c -o lexer
+ *      gcc lex.yy.c -o lexer -lfl
  *
  * Uso:
- *      ./lexer test.mc
+ *      ./lexer arquivo.mc
  */
-
-%{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* ---------------------------------------------------------------------
- * 1. VOCABULARIO DE TOKENS (equivalente a tokens.h)
- * ------------------------------------------------------------------- */
-
 typedef enum {
-    /* Tokens fundamentais */
-    UNDEF,          /* token indefinido (usado para reportar erros) */
-    ID,             /* identificador                                */
-    END_OF_FILE,    /* fim de arquivo                                */
-
-    /* Constantes literais */
-    INTEGERCONST,
-    CHARCONST,
-    STRINGCONST,
-
-    /* Operadores aritmeticos */
+    UNDEF, ID, END_OF_FILE,
+    INTEGERCONST, CHARCONST, STRINGCONST,
     PLUS, MINUS, MUL, DIV, MOD,
-
-    /* Operadores relacionais e logicos */
     EQ, NEQ, LT, GT, LEQ, GEQ, AND, OR, NOT,
-
-    /* Simbolos de atribuicao e pontuacao */
     ASSIGN, SEMICOLON, COMMA, LPAREN, RPAREN,
     LBRACE, RBRACE, LBRACKET, RBRACKET,
-
-    /* Palavras reservadas */
     MAIN, IF, ELSE, FOR, RETURN, INT, CHAR, PRINT
 } TokenType;
 
-/* Nomes dos tokens, usados apenas pelo main() de teste abaixo para
- * imprimir o tipo de cada token de forma legivel. Mantenha esta lista
- * na MESMA ORDEM do enum TokenType. */
 static const char *nome_token[] = {
     "UNDEF", "ID", "END_OF_FILE",
     "INTEGERCONST", "CHARCONST", "STRINGCONST",
@@ -64,202 +33,262 @@ static const char *nome_token[] = {
     "MAIN", "IF", "ELSE", "FOR", "RETURN", "INT", "CHAR", "PRINT"
 };
 
-/* Valor semantico do token corrente. */
 typedef struct {
-    char *symbol;      /* lexema para ID, INTEGERCONST, CHARCONST, STRINGCONST */
-    char *error_msg;   /* mensagem de erro, usada apenas quando tipo == UNDEF   */
-} YYSTYPE;
+    char *texto;
+    char *erro;
+} ValorToken;
 
-YYSTYPE microc_yylval;
+static ValorToken valor_atual;
 
-/* Linha atual do arquivo-fonte sendo processado. Deve ser incrementada
- * toda vez que uma quebra de linha for consumida pelo scanner (seja em
- * codigo "normal", dentro de comentarios ou dentro de strings). */
 int linha_atual = 1;
 
-/* Funcao auxiliar para preencher microc_yylval.symbol com uma copia do
- * texto reconhecido (yytext). Sinta-se livre para usar/adaptar. */
-static void guarda_lexema(void) {
-    microc_yylval.symbol = strdup(yytext);
+#define TABELA_MAX 1024
+static char *tabela[TABELA_MAX];
+static int   tabela_n = 0;
+
+static char *tabela_guarda(const char *s) {
+    int i;
+    for (i = 0; i < tabela_n; i++) {
+        if (strcmp(tabela[i], s) == 0) {
+            return tabela[i];
+        }
+    }
+    if (tabela_n < TABELA_MAX) {
+        tabela[tabela_n] = strdup(s);
+        tabela_n++;
+        return tabela[tabela_n - 1];
+    }
+    return strdup(s);
 }
 
+static int ultimo_token = -1;
+
+static int pode_terminar_expressao(int t) {
+    return t == ID || t == INTEGERCONST || t == CHARCONST || t == STRINGCONST
+        || t == RPAREN || t == RBRACKET;
+}
+
+static char converte_escape(char c) {
+    switch (c) {
+        case 'n': return '\n';
+        case 't': return '\t';
+        case '0': return '\0';
+        default:  return c;
+    }
+}
+
+#define STR_MAX 4096
+static char str_buf[STR_MAX];
+static int  str_len;
+static int  str_tem_nulo;
+
+static void str_add(char c) {
+    if (str_len < STR_MAX - 1) {
+        str_buf[str_len++] = c;
+    }
+}
 %}
 
-/* -----------------------------------------------------------------------
- * 2. SECAO DE DEFINICOES
- * ------------------------------------------------------------------- */
+DIGITO   [0-9]
+LETRA    [a-zA-Z_]
+ALFANUM  [a-zA-Z0-9_]
 
-DIGIT       [0-9]
-LETRA       [a-zA-Z_]
-ALFANUM     [a-zA-Z0-9_]
-
-%x COMMENT
+%x COMENTARIO
+%x STRING
 
 %%
 
- /* -----------------------------------------------------------------------
-  * 3. SECAO DE REGRAS
-  * --------------------------------------------------------------------- */
+<INITIAL><<EOF>>     { return END_OF_FILE; }
 
- /* --- Fim de arquivo -----------------------------------------------------
-  * Tratada explicitamente (em vez de depender do retorno automatico 0
-  * do flex), pois o token UNDEF tambem vale 0 no enum TokenType -- se
-  * dependessemos do comportamento padrao, um erro lexico seria
-  * confundido com o fim do arquivo pelo main() de teste abaixo. */
-<<EOF>>             { return END_OF_FILE; }
+\n                   { linha_atual++; }
+[ \t\r]+             { /* ignorados */ }
 
- /* --- Espacos em branco e quebras de linha ---------------------------- */
-\n                  { linha_atual++; }
-[ \t\r]+            { /* ignora espacos em branco */ }
+"//".*               { /* comentario de linha, descartado */ }
 
- /* --- Comentarios ------------------------------------------------------
-  * Estes ja estao implementados como exemplo de uso de estados (%x) e
-  * de tratamento de erro via EOF dentro de um estado especial. */
-"//".*              { /* comentario de linha: ignora ate o fim da linha */ }
+"/*"                 { BEGIN(COMENTARIO); }
+<COMENTARIO>"*/"     { BEGIN(INITIAL); }
+<COMENTARIO>\n       { linha_atual++; }
+<COMENTARIO>.        { }
+<COMENTARIO><<EOF>>  {
+                         BEGIN(INITIAL);
+                         valor_atual.erro = "EOF em comentario";
+                         return UNDEF;
+                      }
 
-"/*"                { BEGIN(COMMENT); }
-<COMMENT>"*/"       { BEGIN(INITIAL); }
-<COMMENT>\n         { linha_atual++; }
-<COMMENT><<EOF>>    {
-                        microc_yylval.error_msg = "EOF em comentario";
-                        return UNDEF;
-                    }
-<COMMENT>.          { /* consome qualquer outro caractere dentro do comentario */ }
+"*/"                 {
+                         valor_atual.erro = "Comentario nao iniciado";
+                         return UNDEF;
+                      }
 
- /* Fechamento de comentario sem abertura correspondente. */
-"*/"                {
-                        microc_yylval.error_msg = "Comentario nao iniciado";
-                        return UNDEF;
-                    }
+ /* TODO(aluno): reconhecer palavras reservadas -- identificador casa
+  * primeiro (maximal munch), so depois comparamos com strcmp() na
+  * tabela de reservadas. valor_atual.texto (o campo da ValorToken
+  * pro lexema) usa tabela_guarda(), que copia com strdup() e
+  * reaproveita o ponteiro se o mesmo texto ja apareceu antes. */
+{LETRA}{ALFANUM}*    {
+                         static const struct { const char *palavra; TokenType tipo; } reservadas[] = {
+                             { "main",   MAIN   }, { "if",     IF     },
+                             { "else",  ELSE   }, { "for",    FOR    },
+                             { "return", RETURN }, { "int",    INT    },
+                             { "char",   CHAR   }, { "print",  PRINT  },
+                         };
+                         const int n = sizeof(reservadas) / sizeof(reservadas[0]);
+                         int i;
+                         for (i = 0; i < n; i++) {
+                             if (strcmp(yytext, reservadas[i].palavra) == 0) {
+                                 return reservadas[i].tipo;
+                             }
+                         }
+                         valor_atual.texto = tabela_guarda(yytext);
+                         return ID;
+                      }
 
- /* --- Palavras reservadas e identificadores ----------------------------
-  * TODO(aluno): atualmente TODA sequencia de letras/underscore e
-  * devolvida como ID. Voce deve comparar o lexema reconhecido com cada
-  * palavra reservada da linguagem (main, if, else, for, return, int,
-  * char, print) e devolver o token especifico quando houver
-  * correspondencia. Use strcmp(), conforme discutido em aula, ou uma
-  * tabela hash caso queira ir alem do exigido. Nao esqueca de chamar
-  * guarda_lexema() (ou equivalente) quando o token for de fato ID. */
-{LETRA}{ALFANUM}*   {
-                        /* TODO(aluno): reconhecer palavras reservadas aqui */
-                        guarda_lexema();
-                        return ID;
-                    }
+{DIGITO}+            {
+                         valor_atual.texto = tabela_guarda(yytext);
+                         return INTEGERCONST;
+                      }
 
- /* --- Constantes inteiras -----------------------------------------------
-  * TODO(aluno): o padrao formal para um inteiro em Micro C e um ou mais
-  * digitos, opcionalmente precedidos de um sinal de menos (numeros
-  * negativos). A regra abaixo trata apenas inteiros sem sinal; use a
-  * tecnica de lookahead discutida em aula (veja o operador MINUS mais
-  * abaixo) para decidir quando um '-' faz parte do numero e quando ele
-  * e, na verdade, o operador de subtracao. */
-{DIGIT}+            {
-                        guarda_lexema();
-                        return INTEGERCONST;
-                    }
+ /* TODO(aluno): inteiro negativo vs. subtracao -- decide olhando o
+  * token ANTERIOR (ultimo_token/pode_terminar_expressao). Se era
+  * subtracao, yyless(1) "devolve" os digitos pro flex reler depois,
+  * ficando so o '-' casado nesta chamada. */
+"-"{DIGITO}+         {
+                         if (pode_terminar_expressao(ultimo_token)) {
+                             yyless(1);
+                             return MINUS;
+                         }
+                         valor_atual.texto = tabela_guarda(yytext);
+                         return INTEGERCONST;
+                      }
 
- /* --- Constantes de caractere --------------------------------------------
-  * TODO(aluno): reconhecer o padrao 'x' (aspas simples, um caractere,
-  * aspas simples) e devolver CHARCONST. Trate tambem o caso de erro em
-  * que as aspas simples nao sao fechadas corretamente (token UNDEF). */
+ /* TODO(aluno): reconhecer CHARCONST e seus erros. converte_escape()
+  * traduz o caractere depois da barra (\t, \n...); o "default" dela
+  * resolve \" e \\ devolvendo o proprio caractere, sem um case pra
+  * cada. */
+"'"([^'\\\n]|\\.)"'" {
+                         char v[2];
+                         v[0] = (yytext[1] == '\\') ? converte_escape(yytext[2]) : yytext[1];
+                         v[1] = '\0';
+                         valor_atual.texto = tabela_guarda(v);
+                         return CHARCONST;
+                      }
+"'"[^'\n]*"'"        {
+                         valor_atual.erro = "Constante de caractere invalida";
+                         return UNDEF;
+                      }
+"'"[^'\n]*           {
+                         valor_atual.erro = "Constante de caractere nao terminada";
+                         return UNDEF;
+                      }
 
+ /* TODO(aluno): reconhecer STRINGCONST com escapes e os erros da
+  * Secao 4.1. str_buf/str_add montam o valor JA convertido -- nao e
+  * o mesmo texto que yytext mostraria, que teria os escapes "crus"
+  * (barra e letra separados, em vez do caractere de verdade). */
+\"                   {
+                         str_len = 0;
+                         str_tem_nulo = 0;
+                         BEGIN(STRING);
+                      }
+<STRING>\"           {
+                         BEGIN(INITIAL);
+                         str_buf[str_len] = '\0';
+                         if (str_tem_nulo) {
+                             valor_atual.erro = "String contem caractere nulo";
+                             return UNDEF;
+                         }
+                         valor_atual.texto = tabela_guarda(str_buf);
+                         return STRINGCONST;
+                      }
+<STRING>\\.          { str_add(converte_escape(yytext[1])); }
+<STRING>\0           { str_tem_nulo = 1; }
+<STRING>\n           {
+                         linha_atual++;
+                         BEGIN(INITIAL);
+                         valor_atual.erro = "String nao terminada";
+                         return UNDEF;
+                      }
+<STRING><<EOF>>      {
+                         BEGIN(INITIAL);
+                         valor_atual.erro = "EOF em string";
+                         return UNDEF;
+                      }
+<STRING>.            { str_add(yytext[0]); }
 
- /* --- Constantes de string -------------------------------------------
-  * TODO(aluno): reconhecer o padrao "[^"\n]*" (uma ou mais aspas
-  * duplas delimitando o conteudo da string) e devolver STRINGCONST.
-  * Voce deve tratar os seguintes erros (veja o enunciado, Secao 4.1):
-  *   - EOF antes do fechamento da string ("EOF em string")
-  *   - quebra de linha nao escapada dentro da string
-  *     ("String nao terminada")
-  *   - caractere nulo dentro da string
-  *     ("String contem caractere nulo")
-  * Alem disso, converta as sequencias de escape (\n, \t, \\, \", \0)
-  * para os caracteres correspondentes antes de armazenar o lexema. */
+"=="                 { return EQ; }
+"="                  { return ASSIGN; }
 
+ /* TODO(aluno): completar os demais operadores de prefixo
+  * compartilhado, seguindo o exemplo de "==" e "=" acima -- o flex
+  * sempre casa o mais longo, entao duas regras separadas bastam
+  * (nao precisa de logica extra igual no caso do numero negativo). */
+"!="                 { return NEQ; }
+"!"                  { return NOT; }
+"<="                 { return LEQ; }
+"<"                  { return LT; }
+">="                 { return GEQ; }
+">"                  { return GT; }
+"&&"                 { return AND; }
+"||"                 { return OR; }
 
- /* --- Operadores relacionais e logicos ---------------------------------
-  * O caso de '=' esta implementado como EXEMPLO do uso de lookahead
-  * (yytext mostra o que foi casado; voce pode usar input()/unput() ou,
-  * de forma mais simples em flex, escrever as duas alternativas como
-  * regras separadas, deixando o proprio flex escolher o casamento mais
-  * longo -- veja a explicacao na Secao 2 do enunciado). */
-"=="                { return EQ; }
-"="                 { return ASSIGN; }
+"+"                  { return PLUS; }
+"-"                  { return MINUS; }
+"*"                  { return MUL; }
+"/"                  { return DIV; }
+"%"                  { return MOD; }
+";"                  { return SEMICOLON; }
+","                  { return COMMA; }
+"("                  { return LPAREN; }
+")"                  { return RPAREN; }
+"{"                  { return LBRACE; }
+"}"                  { return RBRACE; }
+"["                  { return LBRACKET; }
+"]"                  { return RBRACKET; }
 
- /* TODO(aluno): complete os demais operadores que compartilham prefixo,
-  * seguindo o mesmo padrao do exemplo acima:
-  *   !=  e  !      ->  NEQ, NOT
-  *   <=  e  <      ->  LEQ, LT
-  *   >=  e  >      ->  GEQ, GT
-  *   &&             ->  AND
-  *   ||             ->  OR
-  */
-
- /* --- Operadores aritmeticos e simbolos de pontuacao (ja prontos) ------ */
-"+"                 { return PLUS; }
-"-"                 { return MINUS; }
-"*"                 { return MUL; }
-"/"                 { return DIV; }
-"%"                 { return MOD; }
-";"                 { return SEMICOLON; }
-","                 { return COMMA; }
-"("                 { return LPAREN; }
-")"                 { return RPAREN; }
-"{"                 { return LBRACE; }
-"}"                 { return RBRACE; }
-"["                 { return LBRACKET; }
-"]"                 { return RBRACKET; }
-
- /* --- Caractere invalido -------------------------------------------------
-  * Casa com qualquer caractere que nao tenha correspondido a nenhuma
-  * regra anterior. Deve ser SEMPRE a ultima regra do arquivo. */
-.                   {
-                        microc_yylval.error_msg = strdup(yytext);
-                        return UNDEF;
-                    }
+.                    {
+                         valor_atual.erro = tabela_guarda(yytext);
+                         return UNDEF;
+                      }
 
 %%
 
-/* -----------------------------------------------------------------------
- * 4. SUB-ROTINAS DO USUARIO
- * ------------------------------------------------------------------- */
-
-/* yywrap: informa ao flex que, ao atingir o EOF, a leitura deve
- * simplesmente parar (nao ha um proximo arquivo a processar). */
 int yywrap(void) {
     return 1;
 }
 
-/* main() de teste: le o arquivo passado como argumento e imprime, para
- * cada token reconhecido, seu tipo, lexema e linha -- no mesmo espirito
- * do utilitario "lexer" mencionado no enunciado (Secao 6). Este main()
- * e apenas uma ferramenta de depuracao para voce testar seu scanner de
- * forma isolada; ele NAO faz parte da interface formal entre o scanner
- * e o parser (isso sera tratado nos trabalhos seguintes). */
 int main(int argc, char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Uso: %s <arquivo.mc>\n", argv[0]);
         return 1;
     }
 
-    FILE *arquivo_fonte = fopen(argv[1], "r");
-    if (!arquivo_fonte) {
-        fprintf(stderr, "Erro: nao foi possivel abrir o arquivo '%s'\n", argv[1]);
+    FILE *f = fopen(argv[1], "r");
+    if (!f) {
+        fprintf(stderr, "Nao foi possivel abrir o arquivo: %s\n", argv[1]);
         return 1;
     }
-    yyin = arquivo_fonte;
+    yyin = f;
 
     int tipo;
-    while ((tipo = yylex()) != END_OF_FILE) {
+    for (;;) {
+        valor_atual.texto = NULL;
+        valor_atual.erro  = NULL;
+
+        tipo = yylex();
+        if (tipo == END_OF_FILE) break;
+
         if (tipo == UNDEF) {
-            fprintf(stderr, "ERRO LEXICO (linha %d): %s\n",
-                    linha_atual, microc_yylval.error_msg);
-            continue;
+            fprintf(stderr, "ERRO LEXICO (linha %d): %s\n", linha_atual, valor_atual.erro);
+        } else {
+            printf("Token: tipo = %-13s lexema = '%s'  linha = %d\n",
+                   nome_token[tipo],
+                   valor_atual.texto ? valor_atual.texto : yytext,
+                   linha_atual);
         }
-        printf("Token: tipo = %-13s lexema = '%s'  linha = %d\n",
-               nome_token[tipo], yytext, linha_atual);
+
+        ultimo_token = tipo;
     }
 
-    fclose(arquivo_fonte);
+    fclose(f);
     return 0;
 }

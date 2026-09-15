@@ -1,0 +1,2 @@
+Token: tipo = ID            lexema = 'x'  linha = 1
+Token: tipo = ASSIGN        lexema = '='  linha = 1
