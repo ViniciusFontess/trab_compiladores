@@ -1,0 +1,7 @@
+{
+  "texto": "aspas \"escapadas\" e barra \\ ok",
+  "vazio": {},
+  "matriz": [[1, 2], [3, 4], []],
+  "flags": [true, false, null],
+  "real": 0.25E-2
+}

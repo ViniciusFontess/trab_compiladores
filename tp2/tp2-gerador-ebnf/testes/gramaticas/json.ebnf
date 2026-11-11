@@ -1,0 +1,13 @@
+(* JSON (RFC 8259, simplificado). Testa: regex com classe negada e
+   escapes (STR), opcionais aninhados (NUM), palavras reservadas como
+   literais e listas separadas por virgula: [ x { "," x } ]. *)
+TOKENS
+  STR  = /"([^"\\\n]|\\.)*"/ ;
+  NUM  = /-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?/ ;
+  SKIP = /[ \t\r\n]+/ ;
+
+RULES
+  valor  = objeto | lista | STR | NUM | "true" | "false" | "null" ;
+  objeto = "{" [ par { "," par } ] "}" ;
+  par    = STR ":" valor ;
+  lista  = "[" [ valor { "," valor } ] "]" ;

@@ -1,0 +1,10 @@
+(* Deve ser RECUSADA (etapa 2): x nunca termina (x = A x) e por isso
+   e improdutivo; y nao e alcancavel a partir de s (apenas aviso). *)
+TOKENS
+  A = /a/ ;
+  B = /b/ ;
+
+RULES
+  s = A x | B ;
+  x = A x ;
+  y = B ;

@@ -1,0 +1,21 @@
+(* Mini linguagem imperativa: atribuicao, print, while e if/else.
+   Testa: dois SKIP (brancos e comentarios "-- ..."), palavras
+   reservadas que tambem casam com ID (o literal vence no empate),
+   "=" x "==" (maior prefixo), { } e [ ] dentro de alternativas e
+   o operador unario "-" em fator. *)
+TOKENS
+  ID   = /[a-z_][a-z0-9_]*/ ;
+  NUM  = /[0-9]+/ ;
+  SKIP = /[ \t\r\n]+/ ;
+  SKIP = /--[^\n]*/ ;
+
+RULES
+  programa = { comando } ;
+  comando  = ID "=" expr ";"
+           | "print" expr ";"
+           | "while" expr "do" { comando } "end"
+           | "if" expr "then" { comando } [ "else" { comando } ] "end" ;
+  expr     = soma [ ( "<" | "==" ) soma ] ;
+  soma     = termo { ( "+" | "-" ) termo } ;
+  termo    = fator { ( "*" | "/" ) fator } ;
+  fator    = NUM | ID | "(" expr ")" | "-" fator ;

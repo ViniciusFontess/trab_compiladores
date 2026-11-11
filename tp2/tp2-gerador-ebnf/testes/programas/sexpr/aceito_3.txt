@@ -1,0 +1,1 @@
+; arquivo sem nenhuma expressao: programa = { sexpr } e anulavel

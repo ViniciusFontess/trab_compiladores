@@ -1,0 +1,6 @@
+; fatorial
+(define (fat n)
+  (if (<= n 1)
+      1
+      (* n (fat (- n 1)))))
+(fat 5)

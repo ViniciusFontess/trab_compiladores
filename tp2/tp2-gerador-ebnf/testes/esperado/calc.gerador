@@ -1,0 +1,14 @@
+NAO TERMINAL  ANULAVEL  FIRST / FOLLOW
+programa      sim       FIRST  = {ID, 'print', 'while', 'if'}
+                        FOLLOW = {$}
+comando       nao       FIRST  = {ID, 'print', 'while', 'if'}
+                        FOLLOW = {$, ID, 'print', 'while', 'end', 'if', 'else'}
+expr          nao       FIRST  = {ID, NUM, '-', '('}
+                        FOLLOW = {';', 'do', 'then', ')'}
+soma          nao       FIRST  = {ID, NUM, '-', '('}
+                        FOLLOW = {';', 'do', 'then', '<', '==', ')'}
+termo         nao       FIRST  = {ID, NUM, '-', '('}
+                        FOLLOW = {';', 'do', 'then', '<', '==', '+', '-', ')'}
+fator         nao       FIRST  = {ID, NUM, '-', '('}
+                        FOLLOW = {';', 'do', 'then', '<', '==', '+', '-', '*', '/', ')'}
+status 0

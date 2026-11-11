@@ -1,0 +1,3 @@
+testes/gramaticas/improdutivo.ebnf:10: aviso: nao terminal y inalcancavel a partir do simbolo inicial s
+testes/gramaticas/improdutivo.ebnf:9: erro: nao terminal x e improdutivo (nao deriva nenhuma cadeia de terminais)
+status 1

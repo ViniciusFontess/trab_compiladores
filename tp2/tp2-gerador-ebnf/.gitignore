@@ -1,0 +1,5 @@
+# artefatos de compilacao do gerador (make / make microc / make test)
+build/
+gerador
+gerador.exe
+*.tmp

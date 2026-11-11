@@ -1,0 +1,6 @@
+NAO TERMINAL  ANULAVEL  FIRST / FOLLOW
+programa      sim       FIRST  = {NUM, ATOM, '(', "'"}
+                        FOLLOW = {$}
+sexpr         nao       FIRST  = {NUM, ATOM, '(', "'"}
+                        FOLLOW = {$, NUM, ATOM, '(', ')', "'"}
+status 0

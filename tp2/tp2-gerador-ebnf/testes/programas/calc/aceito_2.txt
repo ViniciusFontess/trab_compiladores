@@ -1,0 +1,2 @@
+-- programa vazio: so comentarios
+-- (programa = { comando } aceita zero comandos)

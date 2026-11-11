@@ -1,0 +1,7 @@
+(* Deve ser RECUSADA (etapa 2): z e usado mas nao definido e o
+   terminal C nao foi declarado em TOKENS. *)
+TOKENS
+  A = /a/ ;
+
+RULES
+  s = A z | C ;
